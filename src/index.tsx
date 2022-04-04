@@ -35,11 +35,12 @@ function getStatus(entity: any) {
 export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
   let detachExternalChangeHandler: Function | null = null;
 
-  const fieldName = sdk.field.id;
+  const fieldName = sdk.field && sdk.field.id;
   const instance: any = sdk.parameters.instance;
   const { display, limit, widget, defaultValue, filter } = instance;
 
   const [value, setValue] = React.useState(null as Link | Link[] | null);
+  const [parentCategoryValue, setParentCategoryValue] = React.useState(null as string | null);
   const [defaults, setDefaults] = React.useState([] as string[]);
   const [entries, setEntries] = React.useState({} as Record<string, EntryType>);
   const [loading, setLoading] = React.useState(true);
@@ -47,7 +48,7 @@ export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
 
   React.useEffect(() => {
     sdk.window.startAutoResizer();
-
+    
     const validations: any[] =
       sdk.field.type === 'Array'
         ? (sdk.field.items && sdk.field.items.validations) || []
@@ -65,10 +66,21 @@ export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
       filter.split('|').forEach((piece: string) => {
         const [key, value] = piece.split(':');
 
-        if (key && value) {
+        if (key && value && sdk.entry.fields.categoryReference.getValue()) {
           query[key] = value;
         }
       });
+
+      if (!sdk.entry.fields.categoryReference.getValue()) {
+        setEntries({});
+        setDefaults([]);
+        setLoading(false);
+        return;
+      }
+
+      // filter sub-category by category reference
+      query['fields.category.sys.id'] = sdk.entry.fields.categoryReference.getValue().sys.id;
+      setLoading(true);
 
       sdk.space.getEntries(query).then((result: any) => {
         const newEntries: Record<string, EntryType> = {};
@@ -91,7 +103,6 @@ export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
               checkedIds.push(sys.id);
             }
           });
-
           setEntries(newEntries);
           setDefaults(checkedIds);
         } catch (err) {
@@ -108,13 +119,15 @@ export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
     // Handler for external field value changes (e.g. when multiple authors are working on the same entry).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     detachExternalChangeHandler = sdk.field.onValueChanged(onExternalChange);
+    // detect category reference changes to filter sub-categories again.
+    sdk.entry.fields.categoryReference.onValueChanged(onCategoryChange);
 
     return () => {
       if (detachExternalChangeHandler) {
         detachExternalChangeHandler();
       }
     };
-  }, []);
+  }, [parentCategoryValue]);
 
   const updateFieldValue = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value) {
@@ -163,8 +176,17 @@ export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
     }
   };
 
+  /* Handler for external field value changes (e.g. when multiple authors are working on the same entry) */
   const onExternalChange = (value: Link | Link[] | null) => {
     setValue(value);
+  };
+
+  /* Handler for category reference field value changes */
+  const onCategoryChange = (value: Link | null) => {
+    const updatedCategory = value
+      ? value.sys.id
+      : null;
+      setParentCategoryValue(updatedCategory);
   };
 
   return (

@@ -9,7 +9,7 @@ import {
   Tag,
   ValidationMessage
 } from '@contentful/forma-36-react-components';
-//
+
 
 type EntryType = {
   display: string;
@@ -41,7 +41,7 @@ export const Dropdown = ({ values, onChange, selected, defaultValue }: SingeLink
         onChange={onChange}
         value={active}
         width="large">
-        <Option value="">Choose a value</Option>
+        <Option value="">Choose a Sub Category</Option>
         {Object.keys(values)
           .filter((key: string) => {
             if (values[key].status === 'Archived' && key !== active) {
@@ -66,7 +66,7 @@ export const Dropdown = ({ values, onChange, selected, defaultValue }: SingeLink
       )}
       {active && !values[active] && (
         <div>
-          <ValidationMessage>ENTRY IS MISSING OR INACCESSIBLE</ValidationMessage>
+          <ValidationMessage>No Category Selected or Category has no Sub Categories</ValidationMessage>
         </div>
       )}
     </>
@@ -103,7 +103,7 @@ export const Radios = ({ values, selected, onChange, defaultValue }: SingeLinkPr
       </FieldGroup>
       {active && !values[active] && (
         <div>
-          <ValidationMessage>ENTRY IS MISSING OR INACCESSIBLE</ValidationMessage>
+          <ValidationMessage>No Category Selected or Category has no Sub Categories</ValidationMessage>
         </div>
       )}
     </>
@@ -141,7 +141,7 @@ export const Checkboxes = ({ values, selected, onChange, defaultValue }: ManyLin
       </FieldGroup>
       {active && !active.every((item: string) => allIds.includes(item)) && (
         <div>
-          <ValidationMessage>AN ENTRY IS MISSING OR INACCESSIBLE</ValidationMessage>
+          <ValidationMessage>No Category Selected or Category has no Sub Categories</ValidationMessage>
         </div>
       )}
     </>
