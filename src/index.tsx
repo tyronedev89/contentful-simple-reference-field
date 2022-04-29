@@ -119,8 +119,6 @@ export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
     // Handler for external field value changes (e.g. when multiple authors are working on the same entry).
     // eslint-disable-next-line react-hooks/exhaustive-deps
     detachExternalChangeHandler = sdk.field.onValueChanged(onExternalChange);
-    // detect category reference changes to filter sub-categories again.
-    sdk.entry.fields.categoryReference.onValueChanged(onCategoryChange);
 
     return () => {
       if (detachExternalChangeHandler) {
@@ -128,6 +126,12 @@ export const SimpleReference = ({ sdk }: SimpleReferenceProps) => {
       }
     };
   }, [parentCategoryValue]);
+
+  React.useEffect(() => {
+     // detect category reference changes to filter sub-categories again.
+     sdk.entry.fields.categoryReference.onValueChanged(onCategoryChange);
+
+  },[]);
 
   const updateFieldValue = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.value) {
